@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">WebRTCExampleApp</string>
+    <string name="start_button">Start</string>
+    <string name="session_name">Session Name</string>
+    <string name="default_session_name">SessionA</string>
+    <string name="participant_name">Participant Name</string>
+    <string name="default_participant_name">Participant27</string>
+    <string name="socket_address">URL</string>
+    <string name="default_socket_address">wss://demos.openvidu.io:8443/room</string>
+    <string name="hang_up">HANG UP</string>
+</resources>
