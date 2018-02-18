@@ -1,6 +1,8 @@
-package com.sergiopaniegoblanco.webrtcexampleapp;
+package com.sergiopaniegoblanco.webrtcexampleapp.observers;
 
 import android.util.Log;
+
+import com.sergiopaniegoblanco.webrtcexampleapp.RemoteParticipant;
 
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
@@ -15,11 +17,11 @@ public class CustomSdpObserver implements SdpObserver {
     private String tag = this.getClass().getCanonicalName();
     private RemoteParticipant remoteParticipant;
 
-    CustomSdpObserver(String logTag) {
+    public CustomSdpObserver(String logTag) {
         this.tag = this.tag + " " + logTag;
     }
 
-    CustomSdpObserver(String logTag, RemoteParticipant remoteParticipant) {
+    public CustomSdpObserver(String logTag, RemoteParticipant remoteParticipant) {
         this.tag = this.tag + " " + logTag;
         this.remoteParticipant = remoteParticipant;
     }

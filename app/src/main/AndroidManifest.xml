@@ -15,8 +15,9 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity" >
+        android:theme="@style/WebRTCAppTheme">
+        <activity android:name=".MainActivity"
+            android:label="WebRTCApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

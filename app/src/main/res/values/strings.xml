@@ -8,4 +8,9 @@
     <string name="socket_address">URL</string>
     <string name="default_socket_address">wss://demos.openvidu.io:8443/room</string>
     <string name="hang_up">HANG UP</string>
+    <string name="no_connection">COULDN\'T STABLISH THE CONNECTION, TRY AGAIN :)</string>
+    <string name="no_permissions_granted">We can\'t give you service without your permission</string>
+    <string name="permissions_dialog_title">We need your help</string>
+    <string name="accept_permissions_dialog">GIVE PERMISSIONS!</string>
+    <string name="cancel_dialog">CANCEL</string>
 </resources>

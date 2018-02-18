@@ -1,4 +1,4 @@
-package com.sergiopaniegoblanco.webrtcexampleapp;
+package com.sergiopaniegoblanco.webrtcexampleapp.adapters;
 
 import android.os.Handler;
 import android.util.Log;
@@ -13,6 +13,10 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketListener;
 import com.neovisionaries.ws.client.WebSocketState;
+import com.sergiopaniegoblanco.webrtcexampleapp.MainActivity;
+import com.sergiopaniegoblanco.webrtcexampleapp.R;
+import com.sergiopaniegoblanco.webrtcexampleapp.RemoteParticipant;
+import com.sergiopaniegoblanco.webrtcexampleapp.observers.CustomSdpObserver;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,7 +76,7 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
     public int getId() {
         return id;
     }
-    public void updateId() {
+    private void updateId() {
         id++;
     }
 
@@ -180,7 +184,7 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
             if (result.has("value")) {
                 if (result.getJSONArray("value").length() != 0) {
                     for (int i = 0; i < result.getJSONArray("value").length(); i++) {
-                        final String remoteParticipantId = result.getJSONArray("value").getJSONObject(i).getString("id");
+                        remoteParticipantId = result.getJSONArray("value").getJSONObject(i).getString("id");
                         final RemoteParticipant remoteParticipant = new RemoteParticipant();
                         remoteParticipant.setId(remoteParticipantId);
                         participants.put(remoteParticipantId, remoteParticipant);

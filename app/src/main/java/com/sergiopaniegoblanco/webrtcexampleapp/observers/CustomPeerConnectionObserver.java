@@ -1,6 +1,8 @@
-package com.sergiopaniegoblanco.webrtcexampleapp;
+package com.sergiopaniegoblanco.webrtcexampleapp.observers;
 
 import android.util.Log;
+
+import com.sergiopaniegoblanco.webrtcexampleapp.RemoteParticipant;
 
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
@@ -17,11 +19,11 @@ public class CustomPeerConnectionObserver implements PeerConnection.Observer {
     private String logTag = this.getClass().getCanonicalName();
     private RemoteParticipant remoteParticipant;
 
-    CustomPeerConnectionObserver(String logTag) {
+    public CustomPeerConnectionObserver(String logTag) {
         this.logTag = this.logTag+" "+logTag;
     }
 
-    CustomPeerConnectionObserver(String logTag, RemoteParticipant remoteParticipant) {
+    public CustomPeerConnectionObserver(String logTag, RemoteParticipant remoteParticipant) {
         this.logTag = this.logTag+" "+logTag;
         this.remoteParticipant = remoteParticipant;
     }

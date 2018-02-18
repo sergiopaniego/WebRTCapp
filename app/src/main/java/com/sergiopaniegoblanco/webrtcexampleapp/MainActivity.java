@@ -1,13 +1,13 @@
 package com.sergiopaniegoblanco.webrtcexampleapp;
 
 import android.Manifest;
+import android.support.v4.app.DialogFragment;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -17,8 +17,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.neovisionaries.ws.client.WebSocket;
-import com.neovisionaries.ws.client.WebSocketException;
-import com.neovisionaries.ws.client.WebSocketFactory;
+import com.sergiopaniegoblanco.webrtcexampleapp.adapters.CustomWebSocketAdapter;
+import com.sergiopaniegoblanco.webrtcexampleapp.fragments.PermissionsDialogFragment;
+import com.sergiopaniegoblanco.webrtcexampleapp.observers.CustomPeerConnectionObserver;
+import com.sergiopaniegoblanco.webrtcexampleapp.observers.CustomSdpObserver;
+import com.sergiopaniegoblanco.webrtcexampleapp.tasks.WebSocketTask;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -38,27 +41,16 @@ import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
     private static final int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 101;
     private static final int MY_PERMISSIONS_REQUEST = 102;
@@ -92,11 +84,32 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         askForPermissions();
         ButterKnife.bind(this);
         initViews();
+    }
+
+    public WebSocket getWebSocket() {
+        return webSocket;
+    }
+
+    public void setWebSocket(WebSocket webSocket) {
+        this.webSocket = webSocket;
+    }
+
+    public CustomWebSocketAdapter getWebSocketAdapter() {
+        return webSocketAdapter;
+    }
+
+    public void setWebSocketAdapter(CustomWebSocketAdapter webSocketAdapter) {
+        this.webSocketAdapter = webSocketAdapter;
+    }
+
+    public LinearLayout getViewsContainer() {
+        return views_container;
     }
 
     public void askForPermissions() {
@@ -128,43 +141,53 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void start(View view) {
-        if (start_finish_call.getText().equals(getResources().getString(R.string.hang_up))) {
-            hangup();
-            return;
+        if (arePermissionGranted()) {
+            if (start_finish_call.getText().equals(getResources().getString(R.string.hang_up))) {
+                hangup();
+                return;
+            }
+            start_finish_call.setText(getResources().getString(R.string.hang_up));
+            socket_address.setEnabled(false);
+            socket_address.setFocusable(false);
+            session_name.setEnabled(false);
+            session_name.setFocusable(false);
+            participant_name.setEnabled(false);
+            participant_name.setFocusable(false);
+
+            PeerConnectionFactory.initializeAndroidGlobals(this, true);
+
+            PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
+            peerConnectionFactory = new PeerConnectionFactory(options);
+
+            VideoCapturer videoGrabberAndroid = createVideoGrabber();
+            MediaConstraints constraints = new MediaConstraints();
+
+            VideoSource videoSource = peerConnectionFactory.createVideoSource(videoGrabberAndroid);
+            localVideoTrack = peerConnectionFactory.createVideoTrack("100", videoSource);
+
+            AudioSource audioSource = peerConnectionFactory.createAudioSource(constraints);
+            localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource);
+
+            videoGrabberAndroid.startCapture(1000, 1000, 30);
+
+            localRenderer = new VideoRenderer(localVideoView);
+            localVideoTrack.addRenderer(localRenderer);
+
+            MediaConstraints sdpConstraints = new MediaConstraints();
+            sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"));
+            sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"));
+
+            createLocalPeerConnection(sdpConstraints);
+            createLocalSocket();
+        } else {
+            DialogFragment permissionsFragment = new PermissionsDialogFragment();
+            permissionsFragment.show(getSupportFragmentManager(), "Permissions Fragment");
         }
-        start_finish_call.setText(getResources().getString(R.string.hang_up));
-        socket_address.setEnabled(false);
-        socket_address.setFocusable(false);
-        session_name.setEnabled(false);
-        session_name.setFocusable(false);
-        participant_name.setEnabled(false);
-        participant_name.setFocusable(false);
+    }
 
-        PeerConnectionFactory.initializeAndroidGlobals(this, true);
-
-        PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
-        peerConnectionFactory = new PeerConnectionFactory(options);
-
-        VideoCapturer videoGrabberAndroid = createVideoGrabber();
-        MediaConstraints constraints = new MediaConstraints();
-
-        VideoSource videoSource = peerConnectionFactory.createVideoSource(videoGrabberAndroid);
-        localVideoTrack = peerConnectionFactory.createVideoTrack("100", videoSource);
-
-        AudioSource audioSource = peerConnectionFactory.createAudioSource(constraints);
-        localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource);
-
-        videoGrabberAndroid.startCapture(1000, 1000, 30);
-
-        localRenderer = new VideoRenderer(localVideoView);
-        localVideoTrack.addRenderer(localRenderer);
-
-        MediaConstraints sdpConstraints = new MediaConstraints();
-        sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"));
-        sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"));
-
-        createLocalPeerConnection(sdpConstraints);
-        createLocalSocket();
+    private boolean arePermissionGranted() {
+        return (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_DENIED) &&
+                (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_DENIED);
     }
 
     public void createLocalPeerConnection(MediaConstraints sdpConstraints) {
@@ -193,82 +216,8 @@ public class MainActivity extends AppCompatActivity {
     public void createLocalSocket() {
         main_participant.setText(participant_name.getText().toString());
         main_participant.setPadding(20, 3, 20, 3);
-        new WebSocketTask().execute(this);
+        new WebSocketTask(this, localPeer, session_name.getText().toString(), participant_name.getText().toString(), socket_address.getText().toString(), peerConnectionFactory, localAudioTrack, localVideoTrack).execute(this);
     }
-
-    class WebSocketTask extends AsyncTask<MainActivity, Void, Void> {
-
-        protected Void doInBackground(MainActivity... parameters) {
-
-            try {
-                WebSocketFactory factory = new WebSocketFactory();
-                SSLContext sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(null, trustManagers, new java.security.SecureRandom());
-                factory.setSSLContext(sslContext);
-                webSocket = new WebSocketFactory().createSocket(getSocketAddress());
-                webSocketAdapter = new CustomWebSocketAdapter(parameters[0], localPeer, session_name.getText().toString(), participant_name.getText().toString(), views_container);
-                webSocket.addListener(webSocketAdapter);
-                webSocket.connect();
-            } catch (IOException | KeyManagementException | WebSocketException | NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-        private String getSocketAddress() {
-            String baseAddress = socket_address.getText().toString();
-            String secureWebSocketPrefix = "wss://";
-            String insecureWebSocketPrefix = "ws://";
-            if (baseAddress.split(secureWebSocketPrefix).length == 1 && baseAddress.split(insecureWebSocketPrefix).length == 1) {
-                baseAddress = secureWebSocketPrefix.concat(baseAddress);
-            }
-            String portSuffix = ":8443";
-            if (baseAddress.split(portSuffix).length == 1 && !baseAddress.regionMatches(true, baseAddress.length() - portSuffix.length(), portSuffix, 0, portSuffix.length())) {
-                baseAddress = baseAddress.concat(portSuffix);
-            }
-            String roomSuffix = "/room";
-            if (!baseAddress.regionMatches(true, baseAddress.length() - roomSuffix.length(), roomSuffix, 0, roomSuffix.length())) {
-                baseAddress = baseAddress.concat(roomSuffix);
-            }
-            return baseAddress;
-        }
-
-        protected void onProgressUpdate(Void... progress) {
-            Log.i(TAG,"PROGRESS " + Arrays.toString(progress));
-        }
-
-        protected void onPostExecute(Void results) {
-            MediaConstraints sdpConstraints = new MediaConstraints();
-            sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"));
-            sdpConstraints.mandatory.add(new MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"));
-
-            MediaStream stream = peerConnectionFactory.createLocalMediaStream("102");
-            stream.addTrack(localAudioTrack);
-            stream.addTrack(localVideoTrack);
-            localPeer.addStream(stream);
-
-            createLocalOffer(sdpConstraints);
-        }
-    }
-
-    /* Trust All Certificates */
-    final TrustManager[] trustManagers = new TrustManager[]{new X509TrustManager() {
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-        }
-
-        @Override
-        public void checkServerTrusted(final X509Certificate[] chain,
-                                       final String authType) throws CertificateException {
-            Log.i(TAG,": authType: " + String.valueOf(authType));
-        }
-
-        @Override
-        public void checkClientTrusted(final X509Certificate[] chain,
-                                       final String authType) throws CertificateException {
-            Log.i(TAG,": authType: " + String.valueOf(authType));
-        }
-    }};
 
     public void createLocalOffer(MediaConstraints sdpConstraints) {
 
@@ -382,6 +331,34 @@ public class MainActivity extends AppCompatActivity {
         remoteParticipant.getParticipantNameText().setPadding(20, 3, 20, 3);
     }
 
+    public void hangup() {
+        if (webSocketAdapter != null && localPeer != null) {
+            webSocketAdapter.sendJson(webSocket, "leaveRoom", new HashMap<String, String>());
+            webSocket.disconnect();
+            localPeer.close();
+            Map<String, RemoteParticipant> participants = webSocketAdapter.getParticipants();
+            for (RemoteParticipant remoteParticipant : participants.values()) {
+                remoteParticipant.getPeerConnection().close();
+                views_container.removeView(remoteParticipant.getView());
+
+            }
+            localPeer = null;
+        }
+        if (localVideoTrack != null) {
+            localVideoTrack.removeRenderer(localRenderer);
+            localVideoView.clearImage();
+            start_finish_call.setText(getResources().getString(R.string.start_button));
+            socket_address.setEnabled(true);
+            socket_address.setFocusableInTouchMode(true);
+            session_name.setEnabled(true);
+            session_name.setFocusableInTouchMode(true);
+            participant_name.setEnabled(true);
+            participant_name.setFocusableInTouchMode(true);
+            main_participant.setText(null);
+            main_participant.setPadding(0, 0, 0, 0);
+        }
+    }
+
     @Override
     protected void onDestroy() {
         hangup();
@@ -394,29 +371,9 @@ public class MainActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    public void hangup() {
-        if (webSocketAdapter != null && localPeer != null) {
-            webSocketAdapter.sendJson(webSocket, "leaveRoom",  new HashMap<String, String>());
-            localPeer.close();
-            localVideoTrack.removeRenderer(localRenderer);
-            localVideoView.clearImage();
-
-            Map<String, RemoteParticipant> participants = webSocketAdapter.getParticipants();
-            for (RemoteParticipant remoteParticipant : participants.values()) {
-                remoteParticipant.getPeerConnection().close();
-                views_container.removeView(remoteParticipant.getView());
-
-            }
-            localPeer = null;
-            start_finish_call.setText(getResources().getString(R.string.start_button));
-            socket_address.setEnabled(true);
-            socket_address.setFocusableInTouchMode(true);
-            session_name.setEnabled(true);
-            session_name.setFocusableInTouchMode(true);
-            participant_name.setEnabled(true);
-            participant_name.setFocusableInTouchMode(true);
-            main_participant.setText(null);
-            main_participant.setPadding(0, 0, 0, 0);
-        }
+    @Override
+    protected void onStop() {
+        hangup();
+        super.onStop();
     }
 }
