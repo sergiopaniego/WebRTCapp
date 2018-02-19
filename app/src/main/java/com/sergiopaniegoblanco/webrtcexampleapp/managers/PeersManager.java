@@ -3,7 +3,7 @@ package com.sergiopaniegoblanco.webrtcexampleapp.managers;
 import android.widget.LinearLayout;
 
 import com.neovisionaries.ws.client.WebSocket;
-import com.sergiopaniegoblanco.webrtcexampleapp.MainActivity;
+import com.sergiopaniegoblanco.webrtcexampleapp.VideoConferenceActivity;
 import com.sergiopaniegoblanco.webrtcexampleapp.RemoteParticipant;
 import com.sergiopaniegoblanco.webrtcexampleapp.adapters.CustomWebSocketAdapter;
 import com.sergiopaniegoblanco.webrtcexampleapp.observers.CustomPeerConnectionObserver;
@@ -45,9 +45,9 @@ public class PeersManager {
     private VideoTrack localVideoTrack;
     private VideoRenderer localRenderer;
     private SurfaceViewRenderer localVideoView;
-    private MainActivity activity;
+    private VideoConferenceActivity activity;
 
-    public PeersManager(MainActivity activity, LinearLayout views_container, SurfaceViewRenderer localVideoView) {
+    public PeersManager(VideoConferenceActivity activity, LinearLayout views_container, SurfaceViewRenderer localVideoView) {
         this.views_container = views_container;
         this.localVideoView = localVideoView;
         this.activity = activity;
@@ -215,10 +215,10 @@ public class PeersManager {
                 activity.gotRemoteStream(mediaStream, getRemoteParticipant());
             }
         });
-        MediaStream stream = peerConnectionFactory.createLocalMediaStream("105");
-        stream.addTrack(localAudioTrack);
-        stream.addTrack(localVideoTrack);
-        remotePeer.addStream(stream);
+        MediaStream mediaStream = peerConnectionFactory.createLocalMediaStream("105");
+        mediaStream.addTrack(localAudioTrack);
+        mediaStream.addTrack(localVideoTrack);
+        remotePeer.addStream(mediaStream);
         remoteParticipant.setPeerConnection(remotePeer);
     }
 

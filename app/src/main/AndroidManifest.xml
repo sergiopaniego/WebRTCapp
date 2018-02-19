@@ -16,7 +16,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/WebRTCAppTheme">
-        <activity android:name=".MainActivity"
+        <activity android:name=".VideoConferenceActivity"
             android:label="WebRTCApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -29,7 +29,7 @@ import org.webrtc.VideoTrack;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class VideoConferenceActivity extends AppCompatActivity {
 
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
     private static final int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 101;
@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private VideoRenderer remoteRenderer;
     private PeersManager peersManager;
+    private WebSocketTask webSocketTask;
 
     @BindView(R.id.views_container)
     LinearLayout views_container;
@@ -112,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
             session_name.setFocusable(false);
             participant_name.setEnabled(false);
             participant_name.setFocusable(false);
-
             peersManager.start();
             createLocalSocket();
         } else {
@@ -129,7 +129,10 @@ public class MainActivity extends AppCompatActivity {
     public void createLocalSocket() {
         main_participant.setText(participant_name.getText().toString());
         main_participant.setPadding(20, 3, 20, 3);
-        new WebSocketTask(this, peersManager, session_name.getText().toString(), participant_name.getText().toString(), socket_address.getText().toString()).execute(this);
+        String sessionName = session_name.getText().toString();
+        String participantName = participant_name.getText().toString();
+        String socketAddress = socket_address.getText().toString();
+        webSocketTask = (WebSocketTask) new WebSocketTask(this, peersManager, sessionName, participantName, socketAddress).execute(this);
     }
 
     public void gotRemoteStream(MediaStream stream, final RemoteParticipant remoteParticipant) {
@@ -137,18 +140,15 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    remoteRenderer = new VideoRenderer(remoteParticipant.getVideoView());
-                    remoteParticipant.getVideoView().setVisibility(View.VISIBLE);
-                    videoTrack.addRenderer(remoteRenderer);
-                    MediaStream stream = peersManager.getPeerConnectionFactory().createLocalMediaStream("105");
-                    stream.addTrack(peersManager.getLocalAudioTrack());
-                    stream.addTrack(peersManager.getLocalVideoTrack());
-                    remoteParticipant.getPeerConnection().removeStream(stream);
-                    remoteParticipant.getPeerConnection().addStream(stream);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                remoteRenderer = new VideoRenderer(remoteParticipant.getVideoView());
+                remoteParticipant.getVideoView().setVisibility(View.VISIBLE);
+                videoTrack.addRenderer(remoteRenderer);
+                MediaStream mediaStream = peersManager.getPeerConnectionFactory().createLocalMediaStream("105");
+                remoteParticipant.setMediaStream(mediaStream);
+                mediaStream.addTrack(peersManager.getLocalAudioTrack());
+                mediaStream.addTrack(peersManager.getLocalVideoTrack());
+                remoteParticipant.getPeerConnection().removeStream(mediaStream);
+                remoteParticipant.getPeerConnection().addStream(mediaStream);
             }
         });
     }
@@ -159,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void hangup() {
+        webSocketTask.setCancelled(true);
         peersManager.hangup();
         localVideoView.clearImage();
         start_finish_call.setText(getResources().getString(R.string.start_button));

@@ -17,26 +17,12 @@ public class RemoteParticipant {
 
     private String id;
     private MediaStream mediaStream;
-    private String userName;
     private PeerConnection peerConnection;
     private AudioTrack audioTrack;
     private VideoTrack videoTrack;
     private SurfaceViewRenderer videoView;
     private View view;
     private TextView participantNameText;
-
-    public RemoteParticipant(String id, MediaStream mediaStream, String userName, PeerConnection peerConnection, AudioTrack audioTrack, VideoTrack videoTrack, View view, TextView participantNameText) {
-        this.id = id;
-        this.mediaStream = mediaStream;
-        this.userName = userName;
-        this.peerConnection = peerConnection;
-        this.audioTrack = audioTrack;
-        this.videoTrack = videoTrack;
-        this.view = view;
-        this.participantNameText = participantNameText;
-    }
-
-    public RemoteParticipant() {}
 
     public String getId() {
         return id;
@@ -52,14 +38,6 @@ public class RemoteParticipant {
 
     public void setMediaStream(MediaStream mediaStream) {
         this.mediaStream = mediaStream;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
 
     public PeerConnection getPeerConnection() {

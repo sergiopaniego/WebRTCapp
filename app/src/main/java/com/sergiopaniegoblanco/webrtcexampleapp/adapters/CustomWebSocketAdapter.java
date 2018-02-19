@@ -13,7 +13,8 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketListener;
 import com.neovisionaries.ws.client.WebSocketState;
-import com.sergiopaniegoblanco.webrtcexampleapp.MainActivity;
+import com.sergiopaniegoblanco.webrtcexampleapp.VideoConferenceActivity;
+import com.sergiopaniegoblanco.webrtcexampleapp.constants.JSONConstants;
 import com.sergiopaniegoblanco.webrtcexampleapp.managers.PeersManager;
 import com.sergiopaniegoblanco.webrtcexampleapp.R;
 import com.sergiopaniegoblanco.webrtcexampleapp.RemoteParticipant;
@@ -45,7 +46,7 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
     private static final String JSON_RPCVERSION = "2.0";
     private static final int PING_MESSAGE_INTERVAL = 3;
 
-    private MainActivity mainActivity;
+    private VideoConferenceActivity videoConferenceActivity;
     private PeerConnection localPeer;
     private int id;
     private List<Map<String, String>> iceCandidatesParams;
@@ -57,17 +58,19 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
     private Map<String, RemoteParticipant> participants;
     private String remoteParticipantId;
     private PeersManager peersManager;
+    private String socketAddress;
 
-    public CustomWebSocketAdapter(MainActivity mainActivity, PeersManager peersManager, PeerConnection localPeer, String sessionName, String participantName, LinearLayout views_container) {
-        this.mainActivity = mainActivity;
+    public CustomWebSocketAdapter(VideoConferenceActivity videoConferenceActivity, PeersManager peersManager, String sessionName, String participantName, LinearLayout views_container, String socketAddress) {
+        this.videoConferenceActivity = videoConferenceActivity;
         this.peersManager = peersManager;
-        this.localPeer = localPeer;
+        this.localPeer = peersManager.getLocalPeer();
         this.id = 0;
         this.sessionName = sessionName;
         this.participantName = participantName;
         this.views_container = views_container;
-        iceCandidatesParams = new ArrayList<>();
-        participants = new HashMap<>();
+        this.socketAddress = socketAddress;
+        this.iceCandidatesParams = new ArrayList<>();
+        this.participants = new HashMap<>();
     }
 
     public Map<String, RemoteParticipant> getParticipants() {
@@ -94,14 +97,15 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
 
         pingMessageHandler(websocket);
 
+        String regex = "(room)+";
+        String baseAddress = socketAddress.split(regex)[0];
         Map<String, String> joinRoomParams = new HashMap<>();
         joinRoomParams.put("dataChannels", "false");
-        joinRoomParams.put("metadata", "{\"clientData\": \"" + participantName + "\"}");
+        joinRoomParams.put(JSONConstants.METADATA, "{\"clientData\": \"" + participantName + "\"}");
         joinRoomParams.put("secret", "MY_SECRET");
-        joinRoomParams.put("session", "wss://demos.openvidu.io:8443/" + sessionName);
+        joinRoomParams.put("session", baseAddress + sessionName);
         joinRoomParams.put("token", "gr50nzaqe6avt65cg5v06");
         sendJson(websocket, "joinRoom", joinRoomParams);
-
 
         if (localOfferParams != null) {
             sendJson(websocket, "publishVideo", localOfferParams);
@@ -109,6 +113,7 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
     }
 
     private void pingMessageHandler(final WebSocket webSocket) {
+        long initialDelay = 0L;
         ScheduledThreadPoolExecutor executor =
                 new ScheduledThreadPoolExecutor(1);
         executor.scheduleWithFixedDelay(new Runnable() {
@@ -120,7 +125,7 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
                 }
                 sendJson(webSocket, "ping", pingParams);
             }
-        }, 0L, PING_MESSAGE_INTERVAL, TimeUnit.SECONDS);
+        }, initialDelay, PING_MESSAGE_INTERVAL, TimeUnit.SECONDS);
     }
 
     @Override
@@ -172,27 +177,27 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
     public void onTextMessage(final WebSocket websocket, String text) throws Exception {
         Log.i(TAG, "Text Message " + text);
         JSONObject json = new JSONObject(text);
-        if (json.has("result")) {
+        if (json.has(JSONConstants.RESULT)) {
             handleResult(websocket, json);
         } else {
             handleMethod(websocket, json);
         }
     }
 
-    private void handleResult(final WebSocket webSocket, JSONObject json) throws Exception {
-        JSONObject result = new JSONObject(json.getString("result"));
-        if (result.has("sdpAnswer")) {
+    private void handleResult(final WebSocket webSocket, JSONObject json) throws JSONException {
+        JSONObject result = new JSONObject(json.getString(JSONConstants.RESULT));
+        if (result.has(JSONConstants.SDP_ANSWER)) {
             saveAnswer(result);
-        } else if (result.has("sessionId")) {
-            if (result.has("value")) {
-                if (result.getJSONArray("value").length() != 0) {
-                    for (int i = 0; i < result.getJSONArray("value").length(); i++) {
-                        remoteParticipantId = result.getJSONArray("value").getJSONObject(i).getString("id");
+        } else if (result.has(JSONConstants.SESSION_ID)) {
+            if (result.has(JSONConstants.VALUE)) {
+                if (result.getJSONArray(JSONConstants.VALUE).length() != 0) {
+                    for (int i = 0; i < result.getJSONArray(JSONConstants.VALUE).length(); i++) {
+                        remoteParticipantId = result.getJSONArray(JSONConstants.VALUE).getJSONObject(i).getString(JSONConstants.ID);
                         final RemoteParticipant remoteParticipant = new RemoteParticipant();
                         remoteParticipant.setId(remoteParticipantId);
                         participants.put(remoteParticipantId, remoteParticipant);
                         createVideoView(remoteParticipant);
-                        setRemoteParticipantName(new JSONObject(result.getJSONArray("value").getJSONObject(i).getString("metadata")).getString("clientData"), remoteParticipant);
+                        setRemoteParticipantName(new JSONObject(result.getJSONArray(JSONConstants.VALUE).getJSONObject(i).getString(JSONConstants.METADATA)).getString("clientData"), remoteParticipant);
                         peersManager.createRemotePeerConnection(remoteParticipant);
                         remoteParticipant.getPeerConnection().createOffer(new CustomSdpObserver("remoteCreateOffer") {
                             @Override
@@ -208,43 +213,43 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
 
                     }
                 }
-                this.userId = result.getString("id");
+                this.userId = result.getString(JSONConstants.ID);
                 for (Map<String, String> iceCandidate : iceCandidatesParams) {
                     iceCandidate.put("endpointName", this.userId);
                     sendJson(webSocket, "onIceCandidate", iceCandidate);
                 }
             }
-        } else if (result.has("value")) {
+        } else if (result.has(JSONConstants.VALUE)) {
             Log.i(TAG, "pong");
         } else {
             Log.e(TAG, "Unrecognized " + result);
         }
     }
 
-    private void handleMethod(final WebSocket webSocket, JSONObject json) throws Exception {
-        if(!json.has("params")) {
+    private void handleMethod(final WebSocket webSocket, JSONObject json) throws JSONException {
+        if(!json.has(JSONConstants.PARAMS)) {
             Log.e(TAG, "No params");
         } else {
-            final JSONObject params = new JSONObject(json.getString("params"));
-            String method = json.getString("method");
+            final JSONObject params = new JSONObject(json.getString(JSONConstants.PARAMS));
+            String method = json.getString(JSONConstants.METHOD);
             switch (method) {
-                case "iceCandidate":
+                case JSONConstants.ICE_CANDIDATE:
                     if (params.getString("endpointName").equals(userId)) {
-                        saveIceCandidate(json.getJSONObject("params"), null);
+                        saveIceCandidate(params, null);
                     } else {
-                        saveIceCandidate(json.getJSONObject("params"), params.getString("endpointName"));
+                        saveIceCandidate(params, params.getString("endpointName"));
                     }
                     break;
-                case "participantJoined":
+                case JSONConstants.PARTICIPANT_JOINED:
                     final RemoteParticipant remoteParticipant = new RemoteParticipant();
-                    remoteParticipant.setId(params.getString("id"));
-                    participants.put(params.getString("id"), remoteParticipant);
+                    remoteParticipant.setId(params.getString(JSONConstants.ID));
+                    participants.put(params.getString(JSONConstants.ID), remoteParticipant);
                     createVideoView(remoteParticipant);
-                    setRemoteParticipantName(new JSONObject(params.getString("metadata")).getString("clientData"), remoteParticipant);
+                    setRemoteParticipantName(new JSONObject(params.getString(JSONConstants.METADATA)).getString("clientData"), remoteParticipant);
                     peersManager.createRemotePeerConnection(remoteParticipant);
                     break;
-                case "participantPublished":
-                    remoteParticipantId = params.getString("id");
+                case JSONConstants.PARTICIPANT_PUBLISHED:
+                    remoteParticipantId = params.getString(JSONConstants.ID);
                     RemoteParticipant remoteParticipantPublished = participants.get(remoteParticipantId);
                     remoteParticipantPublished.getPeerConnection().createOffer(new CustomSdpObserver("remoteCreateOffer", remoteParticipantPublished) {
                         @Override
@@ -259,10 +264,10 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
                         }
                     }, new MediaConstraints());
                     break;
-                case "participantLeft":
+                case JSONConstants.PARTICIPANT_LEFT:
                     final String participantId = params.getString("name");
                     participants.get(participantId).getPeerConnection().close();
-                    Handler mainHandler = new Handler(mainActivity.getMainLooper());
+                    Handler mainHandler = new Handler(videoConferenceActivity.getMainLooper());
                     Runnable myRunnable = new Runnable() {
                         @Override
                         public void run() {
@@ -273,17 +278,19 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
                     RemoteParticipant remoteParticipantToDelete = participants.get(participantId);
                     participants.remove(remoteParticipantToDelete);
                     break;
+                default:
+                    throw new JSONException("Can't understand method: " + method);
             }
         }
     }
 
     private void createVideoView(final RemoteParticipant remoteParticipant) {
-        Handler mainHandler = new Handler(mainActivity.getMainLooper());
+        Handler mainHandler = new Handler(videoConferenceActivity.getMainLooper());
 
         Runnable myRunnable = new Runnable() {
             @Override
             public void run() {
-                View rowView = mainActivity.getLayoutInflater().inflate(R.layout.peer_video, null);
+                View rowView = videoConferenceActivity.getLayoutInflater().inflate(R.layout.peer_video, null);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 lp.setMargins(0, 0, 0, 20);
                 rowView.setLayoutParams(lp);
@@ -306,11 +313,11 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
     }
 
     private void setRemoteParticipantName(final String name, final RemoteParticipant participant) {
-        Handler mainHandler = new Handler(mainActivity.getMainLooper());
+        Handler mainHandler = new Handler(videoConferenceActivity.getMainLooper());
 
         Runnable myRunnable = new Runnable() {
             @Override
-            public void run() { mainActivity.setRemoteParticipantName(name, participant); }
+            public void run() { videoConferenceActivity.setRemoteParticipantName(name, participant); }
         };
         mainHandler.post(myRunnable);
     }
@@ -420,22 +427,22 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
                 paramsJson.put(param.getKey(), param.getValue());
             }
             JSONObject jsonObject = new JSONObject();
-            if (method.equals("joinRoom")) {
-                jsonObject.put("id", 1)
-                        .put("params", paramsJson);
+            if (method.equals(JSONConstants.JOIN_ROOM)) {
+                jsonObject.put(JSONConstants.ID, 1)
+                        .put(JSONConstants.PARAMS, paramsJson);
             } else if (paramsJson.length() > 0) {
-                jsonObject.put("id", getId())
-                        .put("params", paramsJson);
+                jsonObject.put(JSONConstants.ID, getId())
+                        .put(JSONConstants.PARAMS, paramsJson);
             } else {
-                jsonObject.put("id", getId());
+                jsonObject.put(JSONConstants.ID, getId());
             }
             jsonObject.put("jsonrpc", JSON_RPCVERSION)
-                    .put("method", method);
+                    .put(JSONConstants.METHOD, method);
             String jsonString = jsonObject.toString();
             updateId();
             webSocket.sendText(jsonString);
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.i(TAG, "JSONException raised on sendJson");
         }
     }
 
