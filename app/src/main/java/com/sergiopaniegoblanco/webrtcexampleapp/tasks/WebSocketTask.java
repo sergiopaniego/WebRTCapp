@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
+import com.sergiopaniegoblanco.webrtcexampleapp.managers.PeersManager;
 import com.sergiopaniegoblanco.webrtcexampleapp.adapters.CustomWebSocketAdapter;
 import com.sergiopaniegoblanco.webrtcexampleapp.MainActivity;
 import com.sergiopaniegoblanco.webrtcexampleapp.R;
@@ -44,6 +45,7 @@ public class WebSocketTask extends AsyncTask<MainActivity, Void, Void> {
     private PeerConnectionFactory peerConnectionFactory;
     private AudioTrack localAudioTrack;
     private VideoTrack localVideoTrack;
+    private PeersManager peersManager;
     private final TrustManager[] trustManagers = new TrustManager[]{new X509TrustManager() {
         @Override
         public X509Certificate[] getAcceptedIssuers() {
@@ -63,15 +65,16 @@ public class WebSocketTask extends AsyncTask<MainActivity, Void, Void> {
         }
     }};
 
-    public WebSocketTask(MainActivity activity, PeerConnection localPeer, String sessionName, String participantName, String socket_address, PeerConnectionFactory peerConnectionFactory, AudioTrack localAudioTrack, VideoTrack localVideoTrack) {
+    public WebSocketTask(MainActivity activity, PeersManager peersManager, String sessionName, String participantName, String socket_address) {
         this.activity = activity;
-        this.localPeer = localPeer;
+        this.peersManager = peersManager;
+        this.localPeer = peersManager.getLocalPeer();
         this.sessionName = sessionName;
         this.participantName = participantName;
         this.socket_address = socket_address;
-        this.peerConnectionFactory = peerConnectionFactory;
-        this.localAudioTrack = localAudioTrack;
-        this.localVideoTrack = localVideoTrack;
+        this.peerConnectionFactory = peersManager.getPeerConnectionFactory();
+        this.localAudioTrack = peersManager.getLocalAudioTrack();
+        this.localVideoTrack = peersManager.getLocalVideoTrack();
     }
 
     protected Void doInBackground(MainActivity... parameters) {
@@ -81,10 +84,10 @@ public class WebSocketTask extends AsyncTask<MainActivity, Void, Void> {
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, trustManagers, new java.security.SecureRandom());
             factory.setSSLContext(sslContext);
-            activity.setWebSocket(new WebSocketFactory().createSocket(getSocketAddress()));
-            activity.setWebSocketAdapter(new CustomWebSocketAdapter(parameters[0], localPeer, sessionName, participantName, activity.getViewsContainer()));
-            activity.getWebSocket().addListener(activity.getWebSocketAdapter());
-            activity.getWebSocket().connect();
+            peersManager.setWebSocket(new WebSocketFactory().createSocket(getSocketAddress()));
+            peersManager.setWebSocketAdapter(new CustomWebSocketAdapter(parameters[0], peersManager, localPeer, sessionName, participantName, activity.getViewsContainer()));
+            peersManager.getWebSocket().addListener(peersManager.getWebSocketAdapter());
+            peersManager.getWebSocket().connect();
         } catch (IOException | KeyManagementException | WebSocketException | NoSuchAlgorithmException | IllegalArgumentException e) {
             e.printStackTrace();
             Handler mainHandler = new Handler(activity.getMainLooper());
@@ -134,6 +137,6 @@ public class WebSocketTask extends AsyncTask<MainActivity, Void, Void> {
         stream.addTrack(localVideoTrack);
         localPeer.addStream(stream);
 
-        activity.createLocalOffer(sdpConstraints);
+        peersManager.createLocalOffer(sdpConstraints);
     }
 }

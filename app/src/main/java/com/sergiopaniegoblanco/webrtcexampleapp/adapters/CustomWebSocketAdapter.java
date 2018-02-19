@@ -14,6 +14,7 @@ import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketListener;
 import com.neovisionaries.ws.client.WebSocketState;
 import com.sergiopaniegoblanco.webrtcexampleapp.MainActivity;
+import com.sergiopaniegoblanco.webrtcexampleapp.managers.PeersManager;
 import com.sergiopaniegoblanco.webrtcexampleapp.R;
 import com.sergiopaniegoblanco.webrtcexampleapp.RemoteParticipant;
 import com.sergiopaniegoblanco.webrtcexampleapp.observers.CustomSdpObserver;
@@ -55,9 +56,11 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
     private LinearLayout views_container;
     private Map<String, RemoteParticipant> participants;
     private String remoteParticipantId;
+    private PeersManager peersManager;
 
-    public CustomWebSocketAdapter(MainActivity mainActivity, PeerConnection localPeer, String sessionName, String participantName, LinearLayout views_container) {
+    public CustomWebSocketAdapter(MainActivity mainActivity, PeersManager peersManager, PeerConnection localPeer, String sessionName, String participantName, LinearLayout views_container) {
         this.mainActivity = mainActivity;
+        this.peersManager = peersManager;
         this.localPeer = localPeer;
         this.id = 0;
         this.sessionName = sessionName;
@@ -190,7 +193,7 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
                         participants.put(remoteParticipantId, remoteParticipant);
                         createVideoView(remoteParticipant);
                         setRemoteParticipantName(new JSONObject(result.getJSONArray("value").getJSONObject(i).getString("metadata")).getString("clientData"), remoteParticipant);
-                        mainActivity.createRemotePeerConnection(remoteParticipant);
+                        peersManager.createRemotePeerConnection(remoteParticipant);
                         remoteParticipant.getPeerConnection().createOffer(new CustomSdpObserver("remoteCreateOffer") {
                             @Override
                             public void onCreateSuccess(SessionDescription sessionDescription) {
@@ -238,7 +241,7 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
                     participants.put(params.getString("id"), remoteParticipant);
                     createVideoView(remoteParticipant);
                     setRemoteParticipantName(new JSONObject(params.getString("metadata")).getString("clientData"), remoteParticipant);
-                    mainActivity.createRemotePeerConnection(remoteParticipant);
+                    peersManager.createRemotePeerConnection(remoteParticipant);
                     break;
                 case "participantPublished":
                     remoteParticipantId = params.getString("id");
