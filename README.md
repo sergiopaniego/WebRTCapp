@@ -14,9 +14,7 @@ I highly recommend you to go and check the following links
 
 - [OpenVidu's GitHub](https://github.com/OpenVidu)
 
-![WebRTCApp](GitHubImages/WebRTCExampleApp.jpg)
-
-![WebRTCApp](GitHubImages/WebRTCExampleAppCall.jpg)
+![WebRTCApp](GitHubImages/WebRTCExampleAppMixed.jpg)
 
 ## Libraries in the project
 
