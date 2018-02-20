@@ -3,7 +3,7 @@ WebRTCapp is a small elaboration that is part of my final degree project. This a
 With it, you can make calls though a web socket connection. I already implemented something similar but easier connecting to a webSocket mocked server. You can find the code [here](https://github.com/sergiopaniego/WebRTCAndroidExample) 
  and a brief post explaining the concept [here](https://medium.com/@SergioPaniego/tutorial-on-how-to-make-the-simplest-webrtc-android-app-daacb5c8d133)
  
- ##OpenVidu
+ ## OpenVidu
 The app was built based on connecting to OpenVidu , an open source project that provides 
 several libraries implementations to create video conference apps. For more info on whats the project about
 I highly recommend you to go and check the following links
@@ -43,8 +43,7 @@ opening it on Android Studio importing it and running it with the emulator that 
 reason the address that comes built in the app points to [https://demos.openvidu.io/basic-videoconference/](https://demos.openvidu.io/basic-videoconference/). This URL hosts an OpenVidu's demo app that you can use to test that 
 everything works as expected.
 
-(Installing it on personal device)
-##Development Environment
+## Development Environment
  How did I developed the app? Tools I used 
  
 ### Android Studio 3.0.1
