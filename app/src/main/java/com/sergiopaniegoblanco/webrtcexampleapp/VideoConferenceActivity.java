@@ -26,6 +26,8 @@ import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoTrack;
 
+import java.util.Random;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -64,6 +66,9 @@ public class VideoConferenceActivity extends AppCompatActivity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         askForPermissions();
         ButterKnife.bind(this);
+        Random random = new Random();
+        int randomIndex = random.nextInt(100);
+        participant_name.setText(participant_name.getText().append(String.valueOf(randomIndex)));
         this.peersManager = new PeersManager(this, views_container, localVideoView);
         initViews();
     }
@@ -161,7 +166,7 @@ public class VideoConferenceActivity extends AppCompatActivity {
     public void hangup() {
         webSocketTask.setCancelled(true);
         peersManager.hangup();
-        localVideoView.clearImage();
+        localVideoView.release();
         start_finish_call.setText(getResources().getString(R.string.start_button));
         socket_address.setEnabled(true);
         socket_address.setFocusableInTouchMode(true);

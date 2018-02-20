@@ -45,6 +45,7 @@ public class PeersManager {
     private VideoTrack localVideoTrack;
     private VideoRenderer localRenderer;
     private SurfaceViewRenderer localVideoView;
+    private VideoCapturer videoGrabberAndroid;
     private VideoConferenceActivity activity;
 
     public PeersManager(VideoConferenceActivity activity, LinearLayout views_container, SurfaceViewRenderer localVideoView) {
@@ -86,13 +87,12 @@ public class PeersManager {
     }
 
     public void start() {
-
         PeerConnectionFactory.initializeAndroidGlobals(activity, true);
 
         PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
         peerConnectionFactory = new PeerConnectionFactory(options);
 
-        VideoCapturer videoGrabberAndroid = createVideoGrabber();
+        videoGrabberAndroid = createVideoGrabber();
         MediaConstraints constraints = new MediaConstraints();
 
         VideoSource videoSource = peerConnectionFactory.createVideoSource(videoGrabberAndroid);
@@ -101,7 +101,9 @@ public class PeersManager {
         AudioSource audioSource = peerConnectionFactory.createAudioSource(constraints);
         localAudioTrack = peerConnectionFactory.createAudioTrack("101", audioSource);
 
-        videoGrabberAndroid.startCapture(1000, 1000, 30);
+        if (videoGrabberAndroid != null) {
+            videoGrabberAndroid.startCapture(1000, 1000, 30);
+        }
 
         localRenderer = new VideoRenderer(localVideoView);
         localVideoTrack.addRenderer(localRenderer);
@@ -119,7 +121,7 @@ public class PeersManager {
         return videoCapturer;
     }
 
-    public VideoCapturer createCameraGrabber(CameraEnumerator enumerator) {
+    private VideoCapturer createCameraGrabber(CameraEnumerator enumerator) {
         final String[] deviceNames = enumerator.getDeviceNames();
 
         for (String deviceName : deviceNames) {
@@ -144,7 +146,7 @@ public class PeersManager {
         return null;
     }
 
-    public void createLocalPeerConnection(MediaConstraints sdpConstraints) {
+    private void createLocalPeerConnection(MediaConstraints sdpConstraints) {
         final List<PeerConnection.IceServer> iceServers = new ArrayList<>();
         PeerConnection.IceServer iceServer = new PeerConnection.IceServer("stun:stun.l.google.com:19302");
         iceServers.add(iceServer);
@@ -234,11 +236,11 @@ public class PeersManager {
                 views_container.removeView(remoteParticipant.getView());
 
             }
-            localPeer = null;
         }
         if (localVideoTrack != null) {
             localVideoTrack.removeRenderer(localRenderer);
             localVideoView.clearImage();
+            videoGrabberAndroid.dispose();
         }
     }
 }
