@@ -1,4 +1,4 @@
-package com.sergiopaniegoblanco.webrtcexampleapp.adapters;
+package com.sergiopaniegoblanco.webrtcexampleapp.listeners;
 
 import android.os.Handler;
 import android.util.Log;
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  * Created by sergiopaniegoblanco on 02/12/2017.
  */
 
-public final class CustomWebSocketAdapter implements WebSocketListener {
+public final class CustomWebSocketListener implements WebSocketListener {
 
     private static final String TAG = "CustomWebSocketAdapter";
     private static final String JSON_RPCVERSION = "2.0";
@@ -60,7 +60,7 @@ public final class CustomWebSocketAdapter implements WebSocketListener {
     private PeersManager peersManager;
     private String socketAddress;
 
-    public CustomWebSocketAdapter(VideoConferenceActivity videoConferenceActivity, PeersManager peersManager, String sessionName, String participantName, LinearLayout views_container, String socketAddress) {
+    public CustomWebSocketListener(VideoConferenceActivity videoConferenceActivity, PeersManager peersManager, String sessionName, String participantName, LinearLayout views_container, String socketAddress) {
         this.videoConferenceActivity = videoConferenceActivity;
         this.peersManager = peersManager;
         this.localPeer = peersManager.getLocalPeer();

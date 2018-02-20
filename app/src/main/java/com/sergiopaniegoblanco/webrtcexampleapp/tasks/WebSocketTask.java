@@ -9,7 +9,7 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.sergiopaniegoblanco.webrtcexampleapp.VideoConferenceActivity;
 import com.sergiopaniegoblanco.webrtcexampleapp.managers.PeersManager;
-import com.sergiopaniegoblanco.webrtcexampleapp.adapters.CustomWebSocketAdapter;
+import com.sergiopaniegoblanco.webrtcexampleapp.listeners.CustomWebSocketListener;
 import com.sergiopaniegoblanco.webrtcexampleapp.R;
 
 import org.webrtc.AudioTrack;
@@ -89,7 +89,7 @@ public class WebSocketTask extends AsyncTask<VideoConferenceActivity, Void, Void
             factory.setSSLContext(sslContext);
             socketAddress = getSocketAddress();
             peersManager.setWebSocket(new WebSocketFactory().createSocket(socketAddress));
-            peersManager.setWebSocketAdapter(new CustomWebSocketAdapter(parameters[0], peersManager, sessionName, participantName, activity.getViewsContainer(), socketAddress));
+            peersManager.setWebSocketAdapter(new CustomWebSocketListener(parameters[0], peersManager, sessionName, participantName, activity.getViewsContainer(), socketAddress));
             peersManager.getWebSocket().addListener(peersManager.getWebSocketAdapter());
             if (!isCancelled) {
                 peersManager.getWebSocket().connect();

@@ -5,7 +5,7 @@ import android.widget.LinearLayout;
 import com.neovisionaries.ws.client.WebSocket;
 import com.sergiopaniegoblanco.webrtcexampleapp.VideoConferenceActivity;
 import com.sergiopaniegoblanco.webrtcexampleapp.RemoteParticipant;
-import com.sergiopaniegoblanco.webrtcexampleapp.adapters.CustomWebSocketAdapter;
+import com.sergiopaniegoblanco.webrtcexampleapp.listeners.CustomWebSocketListener;
 import com.sergiopaniegoblanco.webrtcexampleapp.observers.CustomPeerConnectionObserver;
 import com.sergiopaniegoblanco.webrtcexampleapp.observers.CustomSdpObserver;
 
@@ -38,7 +38,7 @@ public class PeersManager {
 
     private PeerConnection localPeer;
     private PeerConnectionFactory peerConnectionFactory;
-    private CustomWebSocketAdapter webSocketAdapter;
+    private CustomWebSocketListener webSocketAdapter;
     private WebSocket webSocket;
     private LinearLayout views_container;
     private AudioTrack localAudioTrack;
@@ -74,11 +74,11 @@ public class PeersManager {
         this.webSocket = webSocket;
     }
 
-    public CustomWebSocketAdapter getWebSocketAdapter() {
+    public CustomWebSocketListener getWebSocketAdapter() {
         return webSocketAdapter;
     }
 
-    public void setWebSocketAdapter(CustomWebSocketAdapter webSocketAdapter) {
+    public void setWebSocketAdapter(CustomWebSocketListener webSocketAdapter) {
         this.webSocketAdapter = webSocketAdapter;
     }
 
