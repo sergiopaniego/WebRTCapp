@@ -18,23 +18,23 @@ I highly recommend you to go and check the following links
 
 ![WebRTCApp](GitHubImages/WebRTCExampleAppCall.jpg)
 
-##Libraries in the project
+## Libraries in the project
 
-###WebRTC Library
+### WebRTC Library
 You can find the code for the WebRTC library right on WebRTC's organization [web](https://webrtc.org/native-code/android/). I wrote a briefly post on how WebRTC works internally that you can find 
 [here](https://medium.com/@SergioPaniego/how-webrtc-works-internally-b4cf678c7587). 
 On WebRTC's web you will find how to compile the binaries and generate the library but that for me wasn't that easy. So I have you solutions for you, this [blog post](https://medium.com/@silvestr1994/webrtc-on-android-part-1-building-b6982aad4b49) that aims to explain how to compile that library.
 
-###ButterKnife Library
+### ButterKnife Library
 This library is really useful to bind views and it really helps us working with views in Android. The view can be injected directly on execution so you can directly use it right when you create the view. 
 Link: [ButterKnife](http://jakewharton.github.io/butterknife/)
 
-###WebSocket Library
+### WebSocket Library
 This library is a WebSocket client designed for Java. It implemented the protocol definition allowing us to use a WebSocket without having to implement the whole RFC.
 Link: [WebSocket Library](https://github.com/TakahikoKawasaki/nv-websocket-client)
 
 
-##How to download the project and run it
+## How to download the project and run it
 If you want to run the project locally on your computer you will need Android Studio with an emulator. You can clone the project using
 
    ```
@@ -49,28 +49,28 @@ everything works as expected.
 ##Development Environment
  How did I developed the app? Tools I used 
  
-###Android Studio 3.0.1
+### Android Studio 3.0.1
  As my main IDE I’ve been using Android Studio 3.0.1, the latest version of the environment developed by Google and JetBrains to build Android apps. 
  This IDE is built on JetBrain’s Intellij IDEA software and comes with all the tools needed to develop Android apps, from the native libraries including Kotlin
   to an emulator [Android Studio's link](https://developer.android.com/studio/index.html).
   
-###Android Emulator
+### Android Emulator
 To develop the app, I needed an emulator to check that everything was running as expected. I chose a Pixel XL emulator with API 25 to run it. 
 The emulator that comes integrated on the IDE is pretty good and there is no need to choose another one for the development I wanted.
 
-###Android device
+### Android device
 An emulator is really helpful but a real device is what you really need to check that everything is going well. To help me with this part of the development,
  I used a Samsung Galaxy S6 device so it really helped me finding bugs.
 
-###Sonar
+### Sonar
 Sonar is a tool that inspects your code to perform an static analysis that gives you a report on how your code health is. I have used it to try to keep my code clean [Sonar Qube's web](https://www.sonarqube.org/)
 
-##App Permissions
+## App Permissions
 The first time you open the app, it will ask you to give some permissions to the app. The permissions and the reason why we need the is the following:
 -	Camera: This permission is compulsory because it wouldn’t make any sense to make a video conference app without using the camera, would it?
 -	Record Audio: We need this permission to allow you to share your beautiful voice with the crowd on the other side of the conversation.
 
-##Understanding the code
+## Understanding the code
 The code is divided in some packages to make the code easier to mantain.
  - CustomWebSocketListener: This class implements WebSocketListener. As its name suggest, this class responsibility is to listen what comes to the socket we have.
  It handles the messages sent by the server
