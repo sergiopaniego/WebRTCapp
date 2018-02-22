@@ -68,6 +68,7 @@ The first time you open the app, it will ask you to give some permissions to the
 -	Record Audio: We need this permission to allow you to share your beautiful voice with the crowd on the other side of the conversation.
 
 ## Understanding the code
+![Scheme](GitHubImages/scheme.png)
 The code is divided in some packages to make the code easier to mantain.
  - CustomWebSocketListener: This class implements WebSocketListener. As its name suggest, this class responsibility is to listen what comes to the socket we have.
  It handles the messages sent by the server
