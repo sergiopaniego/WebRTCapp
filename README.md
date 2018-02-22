@@ -1,5 +1,5 @@
-![Technologies](GitHubImages/technologies.png)
 # WebRTCapp
+![Technologies](GitHubImages/technologies.png)
 WebRTCapp is a small elaboration that is part of my final degree project. This app aims to be a small video conference app created using mainly WebRTC technology. 
 With it, you can make calls though a web socket connection. I already implemented something similar but easier connecting to a webSocket mocked server. You can find the code [here](https://github.com/sergiopaniego/WebRTCAndroidExample) 
  and a brief post explaining the concept [here](https://medium.com/@SergioPaniego/tutorial-on-how-to-make-the-simplest-webrtc-android-app-daacb5c8d133)
