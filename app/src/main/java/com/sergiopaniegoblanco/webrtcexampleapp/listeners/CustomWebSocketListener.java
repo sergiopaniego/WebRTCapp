@@ -59,8 +59,11 @@ public final class CustomWebSocketListener implements WebSocketListener {
     private String remoteParticipantId;
     private PeersManager peersManager;
     private String socketAddress;
+    private String token;
 
-    public CustomWebSocketListener(VideoConferenceActivity videoConferenceActivity, PeersManager peersManager, String sessionName, String participantName, LinearLayout views_container, String socketAddress) {
+    public CustomWebSocketListener(VideoConferenceActivity videoConferenceActivity, PeersManager peersManager,
+                                   String sessionName, String participantName, LinearLayout views_container, String socketAddress,
+                                   String token) {
         this.videoConferenceActivity = videoConferenceActivity;
         this.peersManager = peersManager;
         this.localPeer = peersManager.getLocalPeer();
@@ -71,6 +74,7 @@ public final class CustomWebSocketListener implements WebSocketListener {
         this.socketAddress = socketAddress;
         this.iceCandidatesParams = new ArrayList<>();
         this.participants = new HashMap<>();
+        this.token = token;
     }
 
     public Map<String, RemoteParticipant> getParticipants() {
@@ -100,11 +104,11 @@ public final class CustomWebSocketListener implements WebSocketListener {
         String regex = "(room)+";
         String baseAddress = socketAddress.split(regex)[0];
         Map<String, String> joinRoomParams = new HashMap<>();
-        joinRoomParams.put("dataChannels", "false");
         joinRoomParams.put(JSONConstants.METADATA, "{\"clientData\": \"" + participantName + "\"}");
+        joinRoomParams.put("recorder", "false");
         joinRoomParams.put("secret", "MY_SECRET");
-        joinRoomParams.put("session", baseAddress + sessionName);
-        joinRoomParams.put("token", "gr50nzaqe6avt65cg5v06");
+        joinRoomParams.put("session", sessionName);
+        joinRoomParams.put("token", token);
         sendJson(websocket, "joinRoom", joinRoomParams);
 
         if (localOfferParams != null) {

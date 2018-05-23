@@ -177,8 +177,11 @@ public class PeersManager {
                 super.onCreateSuccess(sessionDescription);
                 localPeer.setLocalDescription(new CustomSdpObserver("localSetLocalDesc"), sessionDescription);
                 Map<String, String> localOfferParams = new HashMap<>();
-                localOfferParams.put("audioOnly", "false");
+                localOfferParams.put("audioActive", "true");
+                localOfferParams.put("videoActive", "true");
                 localOfferParams.put("doLoopback", "false");
+                localOfferParams.put("frameRate", "30");
+                localOfferParams.put("typeOfVideo", "CAMERA");
                 localOfferParams.put("sdpOffer", sessionDescription.description);
                 if (webSocketAdapter.getId() > 1) {
                     webSocketAdapter.sendJson(webSocket, "publishVideo", localOfferParams);
