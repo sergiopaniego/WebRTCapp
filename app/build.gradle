@@ -36,5 +36,6 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile 'com.neovisionaries:nv-websocket-client:2.3'
     compile 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation files('libs/java-client-6.0.0.jar')
 }
 

@@ -45,6 +45,8 @@ import okhttp3.Response;
 public class WebSocketTask extends AsyncTask<VideoConferenceActivity, Void, Void> {
 
     private static final String TAG = "WebSocketTask";
+    private static final String TOKEN_URL = "https://demos.openvidu.io:8443/api/tokens";
+    private static final String AUTH_TOKEN = "Basic T1BFTlZJRFVBUFA6TVlfU0VDUkVU";
     private VideoConferenceActivity activity;
     private PeerConnection localPeer;
     private String sessionName;
@@ -96,8 +98,8 @@ public class WebSocketTask extends AsyncTask<VideoConferenceActivity, Void, Void
             String json = "{\"session\": \"SessionA\"}";
             RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), json);
             Request request = new Request.Builder()
-                    .url("https://demos.openvidu.io:8443/api/tokens")
-                    .header("Authorization", "Basic T1BFTlZJRFVBUFA6TVlfU0VDUkVU")
+                    .url(TOKEN_URL)
+                    .header("Authorization", AUTH_TOKEN)
                     .post(body)
                     .build();
             Response response = client.newCall(request).execute();
