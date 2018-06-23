@@ -103,6 +103,7 @@ public class VideoConferenceActivity extends AppCompatActivity {
         EglBase rootEglBase = EglBase.create();
         localVideoView.init(rootEglBase.getEglBaseContext(), null);
         localVideoView.setZOrderMediaOverlay(true);
+        localVideoView.setActivated(true);
     }
 
     public void start(View view) {
@@ -110,6 +111,9 @@ public class VideoConferenceActivity extends AppCompatActivity {
             if (start_finish_call.getText().equals(getResources().getString(R.string.hang_up))) {
                 hangup();
                 return;
+            }
+            if (!localVideoView.isActivated()){
+                initViews();
             }
             start_finish_call.setText(getResources().getString(R.string.hang_up));
             socket_address.setEnabled(false);
@@ -166,6 +170,7 @@ public class VideoConferenceActivity extends AppCompatActivity {
     public void hangup() {
         webSocketTask.setCancelled(true);
         peersManager.hangup();
+        localVideoView.setActivated(false);
         localVideoView.release();
         start_finish_call.setText(getResources().getString(R.string.start_button));
         socket_address.setEnabled(true);
