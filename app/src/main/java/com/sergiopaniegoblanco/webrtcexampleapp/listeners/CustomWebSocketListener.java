@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  * Created by sergiopaniegoblanco on 02/12/2017.
  */
 
-public final class CustomWebSocketListener implements WebSocketListener {
+public class CustomWebSocketListener implements WebSocketListener {
 
     private static final String TAG = "CustomWebSocketAdapter";
     private static final String JSON_RPCVERSION = "2.0";

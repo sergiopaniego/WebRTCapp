@@ -45,7 +45,7 @@ import okhttp3.Response;
 public class WebSocketTask extends AsyncTask<VideoConferenceActivity, Void, Void> {
 
     private static final String TAG = "WebSocketTask";
-    private static final String TOKEN_URL = "https://demos.openvidu.io:8443/api/tokens";
+    private static final String TOKEN_URL = "https://demos.openvidu.io:4443/api/tokens";
     private static final String AUTH_TOKEN = "Basic T1BFTlZJRFVBUFA6TVlfU0VDUkVU";
     private VideoConferenceActivity activity;
     private PeerConnection localPeer;
@@ -145,7 +145,7 @@ public class WebSocketTask extends AsyncTask<VideoConferenceActivity, Void, Void
         if (baseAddress.split(secureWebSocketPrefix).length == 1 && baseAddress.split(insecureWebSocketPrefix).length == 1) {
             baseAddress = secureWebSocketPrefix.concat(baseAddress);
         }
-        String portSuffix = ":8443";
+        String portSuffix = ":4443";
         if (baseAddress.split(portSuffix).length == 1 && !baseAddress.regionMatches(true, baseAddress.length() - portSuffix.length(), portSuffix, 0, portSuffix.length())) {
             baseAddress = baseAddress.concat(portSuffix);
         }
