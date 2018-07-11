@@ -212,7 +212,6 @@ public class CustomWebSocketListener implements WebSocketListener {
 
     private void addParticipantsAlreadyInRoom(JSONObject result, final WebSocket webSocket) throws JSONException {
         for (int i = 0; i < result.getJSONArray(JSONConstants.VALUE).length(); i++) {
-            if (!new JSONObject(result.getJSONArray(JSONConstants.VALUE).getJSONObject(i).getString(JSONConstants.METADATA)).getString("clientData").equals("Participant42")) {
                 remoteParticipantId = result.getJSONArray(JSONConstants.VALUE).getJSONObject(i).getString(JSONConstants.ID);
                 final RemoteParticipant remoteParticipant = new RemoteParticipant();
                 remoteParticipant.setId(remoteParticipantId);
@@ -231,7 +230,6 @@ public class CustomWebSocketListener implements WebSocketListener {
                         sendJson(webSocket, "receiveVideoFrom", remoteOfferParams);
                     }
                 }, new MediaConstraints());
-            }
         }
     }
 
